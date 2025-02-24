@@ -14,7 +14,7 @@ export default function Todo({ bucketId, todo, fetchTodo }) {
         const formData = new FormData();
         formData.append('is_completed', isCompleted);
         const response = await todoApi.updateTodo(bucketId, id, formData);
-      } catch (error) {
+      } catch (error) {1
         console.log(error);
       }
     }
