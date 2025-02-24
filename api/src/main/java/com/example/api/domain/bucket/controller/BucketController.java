@@ -15,24 +15,24 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api")
+@RequestMapping("/buckets")
 public class BucketController {
 
     private final BucketService bucketService;
 
     // 해당 유저가 작성한 버킷 전체 조회
-    @GetMapping("/buckets")
+    @GetMapping
     public ResponseEntity<ApiResponse<List<BucketResponseDto>>> getBuckets(
         @AuthenticationPrincipal User user) {
         return ResponseEntity.ok(ApiResponse.ok(
-            "버킷리스트 전체 조회 성공",
+            "전체 버킷이 조회되었습니다.",
             "OK",
             bucketService.getBuckets(user)
         ));
     }
 
     // 버킷 생성
-    @PostMapping("/buckets")
+    @PostMapping
     public ResponseEntity<ApiResponse<BucketResponseDto>> createBucket(
         @AuthenticationPrincipal User user) {
         return ResponseEntity.ok(ApiResponse.ok(
