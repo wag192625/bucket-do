@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import styles from '../styles/Signup.module.css';
 import authApi from '../api/authApi';
 import { useNavigate } from 'react-router-dom';
+import Modal from '../components/Modal';
 
 function Signup() {
   const navigate = useNavigate();
@@ -13,6 +14,13 @@ function Signup() {
   });
   const [passwordCheck, setPasswordCheck] = useState('');
 
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalData, setModalData] = useState({
+    content: '비밀번호가 일치하지 않습니다.',
+    cancleText: '확인',
+    onConfirm: false,
+  });
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -20,20 +28,23 @@ function Signup() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (formData.password !== passwordCheck) {
-      alert('비밀번호가 일치하지 않습니다!');
+      setIsModalOpen(true);
       return;
     }
 
     try {
       await authApi.signup(formData);
-      alert('회원가입 성공');
+      setIsModalOpen(true);
+      setModalData({
+        content: '회원가입이 성공적으로 완료되었습니다.',
+      });
       navigate('/login');
     } catch (error) {
       console.error('회원가입 실패:', error);
     }
   };
 
-  // username 유효성 검사
+  // todo: username 유효성 검사
   const handleCheckId = () => {
     // if(emailValue === DB에 있는 email 데이터){
     //   alert("이미 존재하는 이메일입니다")
@@ -52,10 +63,10 @@ function Signup() {
 
   return (
     <div className={styles.container}>
-      <form className={styles.signupForm} onSubmit={handleSubmit}>
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} {...modalData} />
+      <form onSubmit={handleSubmit}>
         <div className={styles.usernameBox}>
           <input
-            className={styles.signupInput}
             type="text"
             name="username"
             value={formData.username}
@@ -69,7 +80,6 @@ function Signup() {
         </div>
 
         <input
-          className={styles.signupInput}
           type="email"
           name="email"
           value={formData.email}
@@ -79,7 +89,6 @@ function Signup() {
         />
 
         <input
-          className={styles.signupInput}
           type="tel"
           name="phoneNumber"
           value={formData.phoneNumber}
@@ -89,7 +98,6 @@ function Signup() {
           onChange={handleChange}
         />
         <input
-          className={styles.signupInput}
           type="password"
           name="password"
           placeholder="비밀번호 : 8자 이상, 영문, 숫자, 특수문자 포함"
@@ -98,7 +106,6 @@ function Signup() {
           required
         />
         <input
-          className={styles.signupInput}
           type="password"
           name="passwordCheck"
           placeholder="비밀번호 확인"
