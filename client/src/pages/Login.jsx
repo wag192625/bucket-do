@@ -54,7 +54,6 @@ export default function Login() {
       setIsLoading(false);
     }
   };
-
   return (
     <div className={styles.container}>
       <div>
