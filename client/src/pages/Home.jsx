@@ -13,7 +13,6 @@ export default function Home() {
   const [bucketList, setBucketList] = useState([]);
   const [newBucket, setNewBucket] = useState(null);
   const [newTodo, setNewTodo] = useState(null);
-
   useEffect(() => {
     fetchBuckets();
   }, [activeIndex, newBucket, newTodo]);
