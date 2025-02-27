@@ -29,6 +29,7 @@ public class Bucket extends BaseTimeEntity {
     @Column(length = 20)
     private String title;
     private LocalDateTime deadline;
+
     @Column(nullable = false)
     private boolean isCompleted;
 
@@ -52,6 +53,8 @@ public class Bucket extends BaseTimeEntity {
     private int todoAll;
     @Column(nullable = false)
     private int todoCompleted;
+
+    private Long fixedTodoId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
@@ -113,5 +116,15 @@ public class Bucket extends BaseTimeEntity {
         if (this.todoCompleted > 0) {
             this.todoCompleted--;
         }
+    }
+
+    // 고정 투두 id값 저장
+    public void updateFinalTodoId(Long todoId) {
+        this.fixedTodoId = todoId;
+    }
+
+    // 투두 완료 여부에 따라 버킷 완료 상태 전환
+    public void bucketCompleted(boolean completed) {
+        this.isCompleted = completed;
     }
 }
