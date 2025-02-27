@@ -51,7 +51,7 @@ function Bucket({ activeIndex, bucket, onDelete }) {
 
     try {
       await bucketApi.updateBucket(bucket.id, formData);
-      console.log('✅ 자동 업데이트 성공!');
+      console.log('✅ 자동 업데이트 성공!!');
     } catch (error) {
       console.error('❌ 업데이트 실패 : ', error);
     }
@@ -74,22 +74,37 @@ function Bucket({ activeIndex, bucket, onDelete }) {
       console.error('❌ 버킷 삭제 실패', error);
     }
   };
-
+  const handleDeleteImage = async () => {
+    setImageUrl(null);
+    try {
+      await bucketApi.deleteBucketImage(bucket.id);
+      console.log('✅ 버킷 이미지 삭제 성공');
+      onDelete();
+    } catch (error) {
+      console.error('❌ 버킷 이미지 삭제 실패', error);
+    }
+  };
   return (
     <section className={styles.section}>
       <article className={styles.bucket}>
         <div className={styles.imageBox}>
-          <img src={imageUrl || bucket.imageUrl} alt="미리보기" />
-          <form>
-            <input
-              className={styles.fileInput}
-              type="file"
-              accept="image/*"
-              ref={fileInputRef}
-              name="image_path"
-              onChange={handleFileChange}
-            />
-          </form>
+          <img src={imageUrl || '../public/images/default-image.png'} alt="미리보기" />
+          <input
+            className={styles.fileInput}
+            type="file"
+            accept="image/*"
+            ref={fileInputRef}
+            name="image_path"
+            onChange={handleFileChange}
+          />
+          <div className={styles.imageButtonBox}>
+            <button className={styles.addImageButton} onClick={() => fileInputRef.current?.click()}>
+              추가
+            </button>
+            <button className={styles.deleteImageButton} onClick={handleDeleteImage}>
+              삭제
+            </button>
+          </div>
         </div>
 
         <form>
@@ -100,6 +115,10 @@ function Bucket({ activeIndex, bucket, onDelete }) {
             placeholder="버킷 리스트 내용을 입력해주세요."
             onChange={handleFormChange}
           />
+          <div className={styles.progressBarBox}>
+            <p>진행률</p>
+            <div className={styles.progressBar}>test</div>
+          </div>
         </form>
 
         <div className={styles.buttonBox}>
