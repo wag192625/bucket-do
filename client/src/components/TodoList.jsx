@@ -1,46 +1,66 @@
 import React, { useEffect, useState } from 'react';
-import todoApi from '../api/todoApi';
 import Todo from './Todo';
+import todoApi from '../api/todoApi';
 import styles from '../styles/TodoList.module.css';
+import errorMessages from '../config/errorMessages';
 
-export default function TodoList({ bucketId }) {
-  const [todos, setTodos] = useState([]);
-
-  const fetchTodos = async () => {
-    try {
-      const response = await todoApi.getTodos(bucketId);
-      const data = response.data;
-      const todos = data.todos;
-      setTodos(todos);
-    } catch (error) {
-      console.log(error);
-    }
-  };
+export default function TodoList({ isToggled, bucketId, fixedTodoId, modalOpen, modalClose }) {
+  const [todoList, setTodoList] = useState([]);
 
   useEffect(() => {
     fetchTodos();
   }, []);
 
+  // 투두 리스트 get
+  const fetchTodos = async () => {
+    try {
+      const response = await todoApi.getTodos(bucketId);
+      const todos = response.data.todos;
+      setTodoList(todos);
+    } catch (error) {
+      const errorMessage =
+        errorMessages[error.status]?.[error.code] || errorMessages[error.status]?.DEFAULT;
+      const modalData = {
+        content: errorMessage,
+        cancelText: '확인',
+        onConfirm: false,
+      };
+
+      modalOpen(modalData);
+    }
+  };
+
+  // 투두 생성
   const handleCreate = async () => {
     try {
       await todoApi.createTodo(bucketId);
       fetchTodos();
     } catch (error) {
-      console.log(error);
+      const errorMessage =
+        errorMessages[error.status]?.[error.code] || errorMessages[error.status]?.DEFAULT;
+      const modalData = {
+        content: errorMessage,
+        cancelText: '확인',
+        onConfirm: false,
+      };
+
+      modalOpen(modalData);
     }
   };
-  // 현재 버킷(bucketId)의 첫 번째 투두 ID 찾기
-  const firstTodoId = todos.length > 0 ? todos[0].id : null;
 
-  const todoList = Array.isArray(todos)
-    ? todos.map((todo) => {
+  const todos = Array.isArray(todoList)
+    ? todoList.map((todo) => {
+        const isFixed = todo.id === fixedTodoId;
+
         return (
           <li key={todo.id}>
             <Todo
               bucketId={bucketId}
               todo={todo}
               fetchTodo={fetchTodos}
-              isFirst={todo.id === firstTodoId}
+              isFixed={isFixed}
+              modalOpen={modalOpen}
+              modalClose={modalClose}
             />
           </li>
         );
@@ -48,8 +68,15 @@ export default function TodoList({ bucketId }) {
     : null;
 
   return (
-    <div className={styles.todoListContainer}>
-      <ul className={styles.todoList}>{todoList}</ul>
+    <div
+      style={
+        isToggled
+          ? {}
+          : { opacity: '0', visibility: 'hidden', maxHeight: '0', padding: '0', zIndex: '-999' }
+      }
+      className={styles.container}
+    >
+      <ul>{todos}</ul>
 
       <button className={styles.createButton} onClick={handleCreate}>
         +

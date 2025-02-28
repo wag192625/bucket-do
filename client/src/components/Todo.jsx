@@ -1,10 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import styles from '../styles/Todo.module.css';
 import todoApi from '../api/todoApi';
+import styles from '../styles/Todo.module.css';
 
-export default function Todo({ bucketId, todo, fetchTodo, isFirst }) {
-  const { id, content, isCompleted } = todo;
+export default function Todo({ bucketId, todo, fetchTodo, isFixed, modalOpen, modalClose }) {
+  const { id, content, completed } = todo;
+  console.log(todo);
 
+  const [inputContent, setInputContent] = useState(content);
+  const [isCompleted, setCompleted] = useState(completed);
+  
   const [formData, setFormData] = useState({
     content: content || '',
     isCompleted: isCompleted || false,
@@ -17,6 +21,21 @@ export default function Todo({ bucketId, todo, fetchTodo, isFirst }) {
       isCompleted: isCompleted || false,
     });
   }, [content, isCompleted]);
+
+  useEffect(() => {
+    async function updateContent() {
+      try {
+        const formData = new FormData();
+        formData.append('completed', isCompleted);
+        const response = await todoApi.updateTodo(bucketId, id, formData);
+      } catch (error) {
+        1;
+        console.log(error);
+      }
+    }
+
+    updateContent();
+  }, [isCompleted]);
 
   async function updateTodo() {
     try {
@@ -67,11 +86,11 @@ export default function Todo({ bucketId, todo, fetchTodo, isFirst }) {
         value={formData.content || ''}
         onChange={handleChangeContent}
         onBlur={updateTodo}
-        disabled={isFirst}
+        disabled={isFixed}
       />
 
       <button
-        className={isFirst ? styles.firstTodoButton : styles.deleteButton}
+        className={isFixed ? styles.firstTodoButton : styles.deleteButton}
         onClick={handleDelete}
       >
         x

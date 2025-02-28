@@ -1,3 +1,9 @@
+.modal {
+  width: 100vw;
+  max-height: 100vh;
+}
+
+/* main */
 .section {
   width: var(--width-basic);
   min-height: var(--height-min);
@@ -46,10 +52,15 @@
 
 /* bucketList */
 .container .bucketList {
+  width: 100%;
   min-height: calc(60vh - 45px);
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.emptyBucketList {
+  color: var(--bg-300);
 }
 
 /* createButton */
