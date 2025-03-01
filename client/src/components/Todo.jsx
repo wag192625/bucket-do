@@ -1,97 +1,98 @@
 import React, { useEffect, useState } from 'react';
 import todoApi from '../api/todoApi';
 import styles from '../styles/Todo.module.css';
+import errorMessages from '../config/errorMessages';
 
 export default function Todo({ bucketId, todo, fetchTodo, isFixed, modalOpen, modalClose }) {
-  const { id, content, completed } = todo;
-  console.log(todo);
-
-  const [inputContent, setInputContent] = useState(content);
-  const [isCompleted, setCompleted] = useState(completed);
-  
+  const { id, content, checkCompleted } = todo;
   const [formData, setFormData] = useState({
-    content: content || '',
-    isCompleted: isCompleted || false,
+    content: content.slice(0, 4) == 'null' ? '완료' : content,
+    checkCompleted: checkCompleted,
   });
 
   useEffect(() => {
-    // 초기값이 변경된 경우에만 업데이트
-    setFormData({
-      content: content || '',
-      isCompleted: isCompleted || false,
-    });
-  }, [content, isCompleted]);
+    updateTodo();
+  }, [formData]);
 
-  useEffect(() => {
-    async function updateContent() {
-      try {
-        const formData = new FormData();
-        formData.append('completed', isCompleted);
-        const response = await todoApi.updateTodo(bucketId, id, formData);
-      } catch (error) {
-        1;
-        console.log(error);
-      }
-    }
-
-    updateContent();
-  }, [isCompleted]);
-
-  async function updateTodo() {
+  // 콘텐츠, 체크박스 업데이트
+  const updateTodo = async () => {
     try {
-      const response = await todoApi.updateTodo(bucketId, id, formData);
-      console.log(response);
+      await todoApi.updateTodo(bucketId, id, formData);
     } catch (error) {
-      console.log(error);
-    }
-  }
+      const errorMessage =
+        errorMessages[error.status]?.[error.code] || errorMessages[error.status]?.DEFAULT;
 
-  // 콘텐츠 입력시 formData에 입력
+      const modalData = {
+        content: errorMessage,
+        cancelText: '확인',
+        onConfirm: false,
+      };
+
+      modalOpen(modalData);
+    }
+  };
+
+  // 콘텐츠 수정
   const handleChangeContent = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // 체크박스 클릭시 formData에 입력
-  function handleChangeCheckbox(e) {
-    setFormData({ ...formData, isCompleted: e.target.checked });
-    updateTodo();
-  }
+  // 체크박스 수정
+  const handleChangeCheckbox = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.checked });
+  };
 
-  // 버킷 삭제
-  const handleDelete = async (e) => {
+  // 투두 삭제
+  const handleDeleteTodo = async (e) => {
     e.preventDefault();
 
     try {
       await todoApi.deleteTodo(bucketId, id);
       fetchTodo();
     } catch (error) {
-      console.log(error);
+      const errorMessage =
+        errorMessages[error.status]?.[error.code] || errorMessages[error.status]?.DEFAULT;
+
+      const modalData = {
+        content: errorMessage,
+        cancelText: '확인',
+        onConfirm: false,
+      };
+
+      modalOpen(modalData);
     }
   };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+  };
+
   return (
     <div className={styles.todo}>
-      <input
-        name="isCompleted"
-        type="checkbox"
-        onChange={handleChangeCheckbox}
-        checked={formData.isCompleted}
-      />
+      <form onSubmit={handleSubmit}>
+        <input
+          type="checkbox"
+          name="checkCompleted"
+          onChange={handleChangeCheckbox}
+          checked={formData.checkCompleted}
+        />
 
-      <input
-        id="content"
-        name="content"
-        type="text"
-        placeholder="투두 리스트 내용을 입력해주세요"
-        required
-        value={formData.content || ''}
-        onChange={handleChangeContent}
-        onBlur={updateTodo}
-        disabled={isFixed}
-      />
+        <input
+          id="content"
+          type="text"
+          name="content"
+          placeholder="투두 리스트 내용을 입력해주세요"
+          required
+          value={formData.content || ''}
+          onChange={handleChangeContent}
+          onBlur={updateTodo}
+          disabled={isFixed}
+        />
+      </form>
 
       <button
-        className={isFixed ? styles.firstTodoButton : styles.deleteButton}
-        onClick={handleDelete}
+        className={isFixed ? styles.fixedTodoButton : styles.deleteButton}
+        onClick={handleDeleteTodo}
       >
         x
       </button>

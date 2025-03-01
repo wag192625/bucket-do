@@ -80,6 +80,7 @@ function Bucket({ bucket, fetchBuckets, modalOpen, modalClose }) {
     formData.append('file', inputData.file);
 
     try {
+      // todo: 이미지 수정 로직 확인 필요
       await bucketApi.updateBucket(id, formData);
     } catch (error) {
       const errorMessage =
@@ -170,18 +171,29 @@ function Bucket({ bucket, fetchBuckets, modalOpen, modalClose }) {
       <section className={styles.section}>
         <article className={styles.bucket}>
           <>
-            <div style={isToggled ? {} : { opacity: '0', width: '0' }} className={styles.imageBox}>
-              <img src={imageUrl || '/assets/default-image.png'} alt="미리보기" />
+            <div
+              style={
+                isToggled
+                  ? imageUrl
+                    ? { backgroundColor: 'transparent' }
+                    : {}
+                  : { opacity: '0', width: '0' }
+              }
+              className={styles.imageBox}
+            >
+              {imageUrl && <img src={imageUrl} alt="미리보기" />}
 
-              <input
-                className={styles.imageInput}
-                type="file"
-                accept="image/*"
-                ref={fileInputRef}
-                name="image_path"
-                onChange={handleFileChange}
-                disabled={isToggled ? false : true}
-              />
+              <form onSubmit={handleSubmit}>
+                <input
+                  className={styles.imageInput}
+                  type="file"
+                  accept="image/*"
+                  ref={fileInputRef}
+                  name="image_path"
+                  onChange={handleFileChange}
+                  disabled={isToggled ? false : true}
+                />
+              </form>
 
               <div className={styles.imageButtonBox}>
                 <button
@@ -216,11 +228,11 @@ function Bucket({ bucket, fetchBuckets, modalOpen, modalClose }) {
                 <p>진행률</p>
                 <div
                   style={{
-                    background: `linear-gradient(to right, #71c4ef,  #fffefb  ${progress}%)`,
+                    background: `linear-gradient(to right, #71c4ef, #fffefb  ${progress.toFixed()}%)`,
                   }}
                   className={styles.progressBar}
                 >
-                  <p>{progress}%</p>
+                  <p>{progress.toFixed()}%</p>
                 </div>
               </div>
             </form>
@@ -239,6 +251,7 @@ function Bucket({ bucket, fetchBuckets, modalOpen, modalClose }) {
         </article>
 
         <TodoList
+          imageUrl={imageUrl}
           isToggled={isToggled}
           bucketId={id}
           fixedTodoId={fixedTodoId}

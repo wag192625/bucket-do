@@ -4,7 +4,14 @@ import todoApi from '../api/todoApi';
 import styles from '../styles/TodoList.module.css';
 import errorMessages from '../config/errorMessages';
 
-export default function TodoList({ isToggled, bucketId, fixedTodoId, modalOpen, modalClose }) {
+export default function TodoList({
+  imageUrl,
+  isToggled,
+  bucketId,
+  fixedTodoId,
+  modalOpen,
+  modalClose,
+}) {
   const [todoList, setTodoList] = useState([]);
 
   useEffect(() => {
@@ -48,6 +55,7 @@ export default function TodoList({ isToggled, bucketId, fixedTodoId, modalOpen, 
     }
   };
 
+  // 투두 리스트
   const todos = Array.isArray(todoList)
     ? todoList.map((todo) => {
         const isFixed = todo.id === fixedTodoId;
@@ -67,15 +75,20 @@ export default function TodoList({ isToggled, bucketId, fixedTodoId, modalOpen, 
       })
     : null;
 
+  // 토글 및 이미지 여부에 띠른 스타일 설정
+  const containerStyle = isToggled
+    ? imageUrl
+      ? {
+          backgroundImage: `url(${imageUrl})`,
+          objectFit: 'cover',
+          backgroundOrigin: 'border-box',
+          backgroundSize: 'cover',
+        }
+      : { background: '#b6ccd8' }
+    : { opacity: '0', visibility: 'hidden', maxHeight: '0', padding: '0', zIndex: '-999' };
+
   return (
-    <div
-      style={
-        isToggled
-          ? {}
-          : { opacity: '0', visibility: 'hidden', maxHeight: '0', padding: '0', zIndex: '-999' }
-      }
-      className={styles.container}
-    >
+    <div style={containerStyle} className={styles.container}>
       <ul>{todos}</ul>
 
       <button className={styles.createButton} onClick={handleCreate}>
