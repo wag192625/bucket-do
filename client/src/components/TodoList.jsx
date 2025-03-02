@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import Todo from './Todo';
 import todoApi from '../api/todoApi';
-import styles from '../styles/TodoList.module.css';
+import styles from '../styles/components/TodoList.module.css';
 import errorMessages from '../config/errorMessages';
 
 export default function TodoList({
@@ -11,8 +11,43 @@ export default function TodoList({
   fixedTodoId,
   modalOpen,
   modalClose,
+  isFixedTodoSelectable,
 }) {
   const [todoList, setTodoList] = useState([]);
+  const [isDarkBackground, setIsDarkBackground] = useState(false);
+
+  // 배경 이미지에 따른 폰트 컬러 지정
+  useEffect(() => {
+    const img = new Image();
+    img.crossOrigin = 'Anonymous';
+    img.src = imageUrl;
+
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+
+      canvas.width = img.width;
+      canvas.height = img.height;
+      ctx.drawImage(img, 0, 0, img.width, img.height);
+
+      const imageData = ctx.getImageData(0, 0, img.width, img.height).data;
+      let totalBrightness = 0;
+      let pixelCount = 0;
+
+      for (let i = 0; i < imageData.length; i += 4) {
+        const r = imageData[i];
+        const g = imageData[i + 1];
+        const b = imageData[i + 2];
+
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        totalBrightness += brightness;
+        pixelCount++;
+      }
+
+      const avgBrightness = totalBrightness / pixelCount;
+      setIsDarkBackground(avgBrightness < 128);
+    };
+  }, [imageUrl]);
 
   useEffect(() => {
     fetchTodos();
@@ -69,6 +104,8 @@ export default function TodoList({
               isFixed={isFixed}
               modalOpen={modalOpen}
               modalClose={modalClose}
+              isDarkBackground={isDarkBackground}
+              isFixedTodoSelectable={isFixedTodoSelectable}
             />
           </li>
         );
@@ -76,23 +113,27 @@ export default function TodoList({
     : null;
 
   // 토글 및 이미지 여부에 띠른 스타일 설정
-  const containerStyle = isToggled
-    ? imageUrl
-      ? {
-          backgroundImage: `url(${imageUrl})`,
-          objectFit: 'cover',
-          backgroundOrigin: 'border-box',
-          backgroundSize: 'cover',
-        }
-      : { background: '#b6ccd8' }
-    : { opacity: '0', visibility: 'hidden', maxHeight: '0', padding: '0', zIndex: '-999' };
+  const containerStyle = useMemo(() => {
+    if (!isToggled) {
+      return { opacity: 0, visibility: 'hidden', maxHeight: 0, padding: 0, zIndex: -999 };
+    }
+
+    if (imageUrl) {
+      return {
+        backgroundImage: `url(${imageUrl})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      };
+    }
+
+    return { background: '#b6ccd8' };
+  }, [isToggled, imageUrl]);
 
   return (
     <div style={containerStyle} className={styles.container}>
       <ul>{todos}</ul>
-
       <button className={styles.createButton} onClick={handleCreate}>
-        +
+        <img src="/assets/icon-plus.png" alt="더하기 아이콘" />
       </button>
     </div>
   );

@@ -1,10 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import todoApi from '../api/todoApi';
-import styles from '../styles/Todo.module.css';
+import styles from '../styles/components/Todo.module.css';
 import errorMessages from '../config/errorMessages';
 
-export default function Todo({ bucketId, todo, fetchTodo, isFixed, modalOpen, modalClose }) {
+export default function Todo({
+  bucketId,
+  todo,
+  fetchTodo,
+  isFixed,
+  modalOpen,
+  modalClose,
+  isDarkBackground,
+  isFixedTodoSelectable,
+}) {
   const { id, content, checkCompleted } = todo;
+  const [isFocused, setIsFocused] = useState(false);
   const [formData, setFormData] = useState({
     content: content.slice(0, 4) == 'null' ? '완료' : content,
     checkCompleted: checkCompleted,
@@ -16,8 +26,11 @@ export default function Todo({ bucketId, todo, fetchTodo, isFixed, modalOpen, mo
 
   // 콘텐츠, 체크박스 업데이트
   const updateTodo = async () => {
+    setIsFocused(false);
+
     try {
       await todoApi.updateTodo(bucketId, id, formData);
+      fetchTodo();
     } catch (error) {
       const errorMessage =
         errorMessages[error.status]?.[error.code] || errorMessages[error.status]?.DEFAULT;
@@ -39,12 +52,26 @@ export default function Todo({ bucketId, todo, fetchTodo, isFixed, modalOpen, mo
 
   // 체크박스 수정
   const handleChangeCheckbox = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.checked });
+    if (e.target.checked && isFixed) {
+      if (isFixedTodoSelectable) {
+        setFormData({ ...formData, [e.target.name]: e.target.checked });
+      } else {
+        const modalData = {
+          content: '모든 투두 리스트가 완료되어야 체크 가능합니다.',
+          cancelText: '확인',
+          onConfirm: false,
+        };
+
+        modalOpen(modalData);
+      }
+    } else {
+      setFormData({ ...formData, [e.target.name]: e.target.checked });
+    }
   };
 
   // 투두 삭제
-  const handleDeleteTodo = async (e) => {
-    e.preventDefault();
+  const DeleteTodo = async () => {
+    modalClose();
 
     try {
       await todoApi.deleteTodo(bucketId, id);
@@ -61,6 +88,19 @@ export default function Todo({ bucketId, todo, fetchTodo, isFixed, modalOpen, mo
 
       modalOpen(modalData);
     }
+  };
+
+  // 투두 삭제 버튼
+  const handleDeleteTodo = async (e) => {
+    const modalData = {
+      content: '투두를 삭제하시겠습니까 ?',
+      cancelText: '취소',
+      confirmText: '확인',
+      onConfirm: () => DeleteTodo(),
+    };
+
+    modalOpen(modalData);
+    return;
   };
 
   const handleSubmit = (e) => {
@@ -87,6 +127,10 @@ export default function Todo({ bucketId, todo, fetchTodo, isFixed, modalOpen, mo
           onChange={handleChangeContent}
           onBlur={updateTodo}
           disabled={isFixed}
+          style={
+            isDarkBackground ? { color: isFocused ? '#313d44' : '#fffefb' } : { color: '#313d44' }
+          }
+          onFocus={() => setIsFocused(true)}
         />
       </form>
 
@@ -94,7 +138,7 @@ export default function Todo({ bucketId, todo, fetchTodo, isFixed, modalOpen, mo
         className={isFixed ? styles.fixedTodoButton : styles.deleteButton}
         onClick={handleDeleteTodo}
       >
-        x
+        <img src="/assets/icon-close.png" alt="닫기 아이콘" />
       </button>
     </div>
   );
