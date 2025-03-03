@@ -11,43 +11,9 @@ export default function TodoList({
   fixedTodoId,
   modalOpen,
   modalClose,
-  isFixedTodoSelectable,
 }) {
   const [todoList, setTodoList] = useState([]);
-  const [isDarkBackground, setIsDarkBackground] = useState(false);
-
-  // 배경 이미지에 따른 폰트 컬러 지정
-  useEffect(() => {
-    const img = new Image();
-    img.crossOrigin = 'Anonymous';
-    img.src = imageUrl;
-
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-
-      canvas.width = img.width;
-      canvas.height = img.height;
-      ctx.drawImage(img, 0, 0, img.width, img.height);
-
-      const imageData = ctx.getImageData(0, 0, img.width, img.height).data;
-      let totalBrightness = 0;
-      let pixelCount = 0;
-
-      for (let i = 0; i < imageData.length; i += 4) {
-        const r = imageData[i];
-        const g = imageData[i + 1];
-        const b = imageData[i + 2];
-
-        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
-        totalBrightness += brightness;
-        pixelCount++;
-      }
-
-      const avgBrightness = totalBrightness / pixelCount;
-      setIsDarkBackground(avgBrightness < 128);
-    };
-  }, [imageUrl]);
+  const [isCompleted, setIsCompleted] = useState(false);
 
   useEffect(() => {
     fetchTodos();
@@ -76,7 +42,7 @@ export default function TodoList({
   const handleCreate = async () => {
     try {
       await todoApi.createTodo(bucketId);
-      fetchTodos();
+      await fetchTodos();
     } catch (error) {
       const errorMessage =
         errorMessages[error.status]?.[error.code] || errorMessages[error.status]?.DEFAULT;
@@ -99,13 +65,13 @@ export default function TodoList({
           <li key={todo.id}>
             <Todo
               bucketId={bucketId}
-              todo={todo}
               fetchTodo={fetchTodos}
+              todo={todo}
               isFixed={isFixed}
+              isCompleted={isCompleted}
+              setIsCompleted={setIsCompleted}
               modalOpen={modalOpen}
               modalClose={modalClose}
-              isDarkBackground={isDarkBackground}
-              isFixedTodoSelectable={isFixedTodoSelectable}
             />
           </li>
         );
@@ -132,7 +98,11 @@ export default function TodoList({
   return (
     <div style={containerStyle} className={styles.container}>
       <ul>{todos}</ul>
-      <button className={styles.createButton} onClick={handleCreate}>
+      <button
+        style={isCompleted ? { display: 'none' } : {}}
+        className={styles.createButton}
+        onClick={handleCreate}
+      >
         <img src="/assets/icon-plus.png" alt="더하기 아이콘" />
       </button>
     </div>

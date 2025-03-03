@@ -4,6 +4,7 @@
   left: 0;
   width: 100vw;
   height: 100%;
+  min-height: 100vh;
   background-color: var(--text-100);
   opacity: 0.5;
   z-index: 998;
@@ -26,6 +27,8 @@
 
 .container p {
   color: var(--bg-100);
+  line-height: 1.5;
+  white-space: pre-wrap;
 }
 
 .container .buttonBox {

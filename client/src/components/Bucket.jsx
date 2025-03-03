@@ -11,8 +11,6 @@ import errorMessages from '../config/errorMessages';
 function Bucket({ bucket, fetchBuckets, modalOpen, modalClose }) {
   const { id, fixedTodoId, todoAll, todoCompleted } = bucket;
   const progress = (todoCompleted / todoAll) * 100;
-  const isSelectable = todoAll - 1 === todoCompleted ? true : false;
-  const [isFixedTodoSelectable, setIsFixedTodoSelectable] = useState(isSelectable);
 
   const CreateBucketId = useSelector((state) => state.bucket.bucketId);
   const [isToggled, setIsToggled] = useState(CreateBucketId === id ? true : false);
@@ -31,19 +29,33 @@ function Bucket({ bucket, fetchBuckets, modalOpen, modalClose }) {
       file: bucket.imageUrl || '',
     });
     setImageUrl(bucket.imageUrl);
-    setIsFixedTodoSelectable(todoAll - 1 === todoCompleted ? true : false);
   }, [bucket]);
+
+  useEffect(() => {
+    handleFileUpdate();
+  }, [inputData]);
 
   // form 제출
   const handleSubmit = (e) => {
     e.preventDefault();
     handleTitleUpdate();
+    handleFileUpdate();
+  };
+
+  // 버킷 리스트 get
+  const fetchBucket = async () => {
+    try {
+      await bucketApi.getBuckets();
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   // title 수정
   const handleTitleChange = (e) => {
     const { name, value } = e.target;
     setInputData((prev) => ({ ...prev, [name]: value }));
+    handleTitleUpdate();
   };
 
   // title 업데이트
@@ -53,6 +65,7 @@ function Bucket({ bucket, fetchBuckets, modalOpen, modalClose }) {
 
     try {
       await bucketApi.updateBucket(id, formData);
+      await fetchBucket();
     } catch (error) {
       const errorMessage =
         errorMessages[error.status]?.[error.code] || errorMessages[error.status]?.DEFAULT;
@@ -64,12 +77,10 @@ function Bucket({ bucket, fetchBuckets, modalOpen, modalClose }) {
 
       modalOpen(modalData);
     }
-
-    fetchBuckets();
   };
 
-  // image 수정 및 업데이트
-  const handleFileChange = async (e) => {
+  // image 수정
+  const handleFileChange = (e) => {
     const file = e.target.files[0];
     setInputData((prev) => ({ ...prev, file }));
 
@@ -78,12 +89,14 @@ function Bucket({ bucket, fetchBuckets, modalOpen, modalClose }) {
       setImageUrl(reader.result);
     };
     reader.readAsDataURL(file);
+  };
 
+  // image 업데이트
+  const handleFileUpdate = async () => {
     const formData = new FormData();
     formData.append('file', inputData.file);
 
     try {
-      // todo: 이미지 수정 로직 확인 필요
       await bucketApi.updateBucket(id, formData);
     } catch (error) {
       const errorMessage =
@@ -230,9 +243,15 @@ function Bucket({ bucket, fetchBuckets, modalOpen, modalClose }) {
               <div className={styles.progressBarBox}>
                 <p>진행률</p>
                 <div
-                  style={{
-                    background: `linear-gradient(to right, #71c4ef, #fffefb  ${progress.toFixed()}%)`,
-                  }}
+                  style={
+                    progress === 100
+                      ? {
+                          background: '#71c4ef',
+                        }
+                      : {
+                          background: `linear-gradient(to right, #71c4ef, #fffefb  ${progress.toFixed()}%)`,
+                        }
+                  }
                   className={styles.progressBar}
                 >
                   <p>{progress.toFixed()}%</p>
@@ -268,7 +287,6 @@ function Bucket({ bucket, fetchBuckets, modalOpen, modalClose }) {
           fixedTodoId={fixedTodoId}
           modalOpen={modalOpen}
           modalClose={modalClose}
-          isFixedTodoSelectable={isFixedTodoSelectable}
         />
       </section>
     </>
