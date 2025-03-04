@@ -1,4 +1,4 @@
-import api from "./axios"
+import api from './axios';
 
 const ENDPOINT = '/auth';
 const authApi = {
@@ -10,8 +10,18 @@ const authApi = {
 
   // 로그인
   login: async (formData) => {
-    const response = await api.post(`${ENDPOINT}/login`, formData);
+    const response = await api.post(`${ENDPOINT}/login`, formData, {
+      credentials: 'include',
+    });
     return response.data;
+  },
+
+  // 로그아웃
+  logout: async () => {
+    const response = await api.post(`${ENDPOINT}/logout`, {
+      credentials: 'include',
+    });
+    return response;
   },
 
   // 인증
@@ -24,6 +34,14 @@ const authApi = {
   checkUsername: async (userName) => {
     const response = await api.get(`${ENDPOINT}/users?username=${userName}`);
     return response.data;
+  },
+
+  // 토큰 갱신 요청
+  refreshAccessToken: async () => {
+    const response = await api.post(`${ENDPOINT}/reissuance`, {
+      credentials: 'include',
+    });
+    return response;
   },
 };
 
