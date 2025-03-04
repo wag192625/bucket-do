@@ -28,6 +28,7 @@ export default function Login() {
     onConfirm: false,
   });
 
+  // 로딩 1초 이상일 때 스켈레톤 표시
   useEffect(() => {
     let timeout;
     if (isLoading) {
@@ -62,10 +63,12 @@ export default function Login() {
 
       const response = await authApi.login(formData);
       const username = formData.username;
-      const { token } = response.data;
-      dispatch(login({ token, username }));
+      const accessToken = response.data.accesstoken;
+      const refreshToken = response.data.refreshtoken;
+      dispatch(login({ accessToken, refreshToken, username }));
       navigate('/');
     } catch (error) {
+      console.log(error);
       const errorMessage =
         errorMessages[error.status]?.[error.code] || errorMessages[error.status]?.DEFAULT;
 
