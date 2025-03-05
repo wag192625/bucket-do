@@ -13,6 +13,7 @@ import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
 @RestControllerAdvice
@@ -21,8 +22,15 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(FileManageException.class)
     public ResponseEntity<ApiResponse<Void>> handleFileUpload(FileManageException ex) {
         return ResponseEntity
-            .status(HttpStatus.INTERNAL_SERVER_ERROR)
-            .body(ApiResponse.error(ex.getMessage(), "INTERNAL_SERVER_ERROR"));
+            .status(HttpStatus.BAD_REQUEST)
+            .body(ApiResponse.error(ex.getMessage(), "BAD_REQUEST"));
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ApiResponse<Void>> handleFileUpload(MaxUploadSizeExceededException ex) {
+        return ResponseEntity
+            .status(HttpStatus.PAYLOAD_TOO_LARGE)
+            .body(ApiResponse.error("5MB 이하의 이미지 파일만 업로드 가능합니다.", "PAYLOAD_TOO_LARGE"));
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)
