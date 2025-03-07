@@ -19,7 +19,6 @@ function Bucket({ bucket, fetchBuckets, modalOpen, modalClose }) {
   const [isToggled, setIsToggled] = useState(CreateBucketId === id ? true : false);
 
   const fileInputRef = useRef(null);
-  const firstRander = useRef(null);
   const [imageUrl, setImageUrl] = useState(bucket.imageUrl);
   const [inputData, setInputData] = useState({
     title: '',
@@ -35,12 +34,24 @@ function Bucket({ bucket, fetchBuckets, modalOpen, modalClose }) {
     setImageUrl(bucket.imageUrl);
   }, [bucket]);
 
+  useEffect(() => {
+    handleFileUpdate();
+  }, [inputData]);
+
   // 버킷 리스트 get
   const fetchBucket = async () => {
     try {
       await bucketApi.getBuckets();
     } catch (error) {
-      console.log(error);
+      const errorMessage =
+        errorMessages[error.status]?.[error.code] || errorMessages[error.status]?.DEFAULT;
+      const modalData = {
+        content: errorMessage,
+        cancelText: '확인',
+        onConfirm: false,
+      };
+
+      modalOpen(modalData);
     }
   };
 
@@ -59,7 +70,6 @@ function Bucket({ bucket, fetchBuckets, modalOpen, modalClose }) {
 
     try {
       const response = await bucketApi.updateBucket(id, formData);
-      console.log(response);
 
       await fetchBucket();
     } catch (error) {
@@ -122,10 +132,6 @@ function Bucket({ bucket, fetchBuckets, modalOpen, modalClose }) {
     reader.readAsDataURL(file);
   };
 
-  useEffect(() => {
-    handleFileUpdate();
-  }, [inputData]);
-
   // image 업데이트
   const handleFileUpdate = async () => {
     if (inputData.title == '') return; // 빈 제목 방지
@@ -138,7 +144,9 @@ function Bucket({ bucket, fetchBuckets, modalOpen, modalClose }) {
       fetchBucket();
     } catch (error) {
       const errorMessage =
-        errorMessages[error.status]?.[error.code] || errorMessages[error.status]?.DEFAULT;
+        errorMessages[error.status]?.[error.code] ||
+        errorMessages[error.status]?.DEFAULT ||
+        '이미지를 업로드할 수 없습니다.';
       const modalData = {
         content: errorMessage,
         cancelText: '확인',
@@ -322,6 +330,7 @@ function Bucket({ bucket, fetchBuckets, modalOpen, modalClose }) {
         </article>
 
         <TodoList
+          fetchBuckets={fetchBuckets}
           imageUrl={imageUrl}
           isToggled={isToggled}
           bucketId={id}

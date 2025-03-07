@@ -5,6 +5,7 @@ import errorMessages from '../config/errorMessages';
 import ConfettiEffect from '../components/ConfettiEffect';
 
 export default function Todo({
+  fetchBuckets,
   bucketId,
   fetchTodo,
   todo,
@@ -16,7 +17,7 @@ export default function Todo({
 }) {
   const { id, content, checkCompleted } = todo;
   const [formData, setFormData] = useState({
-    content: content.slice(0, 4) == 'null' ? '완료' : content,
+    content: isFixed ? (content ? content : '완료') : content,
     checkCompleted: checkCompleted,
   });
 
@@ -73,6 +74,7 @@ export default function Todo({
     try {
       await todoApi.updateTodo(bucketId, id, formData);
       await fetchTodos();
+      await fetchBuckets();
     } catch (error) {
       const errorMessage =
         errorMessages[error.status]?.[error.code] || errorMessages[error.status]?.DEFAULT;
@@ -143,7 +145,15 @@ export default function Todo({
         }
       }
     } catch (error) {
-      console.log(error);
+      const errorMessage =
+        errorMessages[error.status]?.[error.code] || errorMessages[error.status]?.DEFAULT;
+      const modalData = {
+        content: errorMessage,
+        cancelText: '확인',
+        onConfirm: false,
+      };
+
+      modalOpen(modalData);
     }
   };
 
@@ -203,13 +213,7 @@ export default function Todo({
             name="content"
             placeholder="투두 리스트 내용을 입력해주세요"
             required
-            value={
-              isFixed
-                ? todo.content.slice(0, 4) == 'null'
-                  ? '완료'
-                  : todo.content
-                : formData.content
-            }
+            value={isFixed ? (content ? content : '완료') : formData.content}
             onChange={handleChangeContent}
             onBlur={updateTodo}
             disabled={isFixed || isCompleted}
