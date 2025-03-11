@@ -38,6 +38,7 @@ export default function Home() {
       dispatch(removeBucket());
     }
   }, []);
+  // 1
 
   // 버킷 리스트 get
   useEffect(() => {
