@@ -2,7 +2,7 @@ services:
   redis:
     container_name: redis-container
     image: redis
-    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}"]
+    command: ['redis-server', '--requirepass', '${REDIS_PASSWORD}']
     volumes:
       - redis-volume:/data
     networks:
@@ -20,7 +20,7 @@ services:
     env_file:
       - .env
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost']
       interval: 10s
       timeout: 5s
       retries: 3
@@ -34,7 +34,7 @@ services:
         - type=local,src=/tmp/docker-cache/api
       cache_to:
         - type=local,dest=/tmp/docker-cache/api,mode=max
-    image: imdla/api-image:latest
+    image: ${DOCKER_REGISTRY}/api-image:latest
     networks:
       - db-network
       - api-network
@@ -55,12 +55,12 @@ services:
         - type=local,src=/tmp/docker-cache/client
       cache_to:
         - type=local,dest=/tmp/docker-cache/client,mode=max
-    image: imdla/client-image:latest
+    image: ${DOCKER_REGISTRY}/client-image:latest
     env_file:
       - .env
     ports:
-      - "80:80"
-      - "443:443"
+      - '80:80'
+      - '443:443'
     networks:
       - api-network
     volumes:
